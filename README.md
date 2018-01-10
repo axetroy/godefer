@@ -37,6 +37,34 @@ getUserInfo('axetroy')
   });
 ```
 
+And here is the Golang code doing same with above
+
+```go
+func getUserInfo(username string) (*User, error) {
+  client, err := db.CreateConnection()
+  if (err != nil) {
+    return nil, err
+  }
+
+  defer func() {
+    client.Close() // close connection after job done
+  }()
+
+  data := client.Qeury(map[string]interface{}{
+    "username": username,
+  })
+
+  return &data, nil
+}
+
+func main() {
+  if user, err := getUserInfo("axetroy"); err != nil {
+    panic(err)
+  }
+  fmt.Println(user)
+}
+```
+
 ## Contributing
 
 [Contributing Guide](https://github.com/axetroy/godefer/blob/master/CONTRIBUTING.md)
