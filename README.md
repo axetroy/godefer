@@ -65,6 +65,17 @@ func main() {
 }
 ```
 
+## API
+
+### godefer(func:Function):deferFunction
+
+- **func**: It can be a common function or async function
+- **deferFunction**: It's a function wrap with ``func``, the last argument must be **defer**
+
+### defer(cb:(result:any)=>void):void
+
+The defer task will run from the latest, Like Golang
+
 ## Contributing
 
 [Contributing Guide](https://github.com/axetroy/godefer/blob/master/CONTRIBUTING.md)
