@@ -234,5 +234,45 @@ test('If throw an error in defer function', async t => {
   } catch (err) {
     t.deepEqual(err.message, 'test error');
   }
+});
 
+test('Make sure the defer function queue right', async t => {
+  const steps = [];
+
+  const getUserInfo = df(function(name, defer) {
+    steps.push(1);
+
+    defer(function num2() {
+      steps.push(2);
+    });
+
+    defer(async function() {
+      throw new Error(`The reject, the defer function still go on. This error have been ignore`);
+    });
+
+    defer({}); // invalid argument, not a function and it should be ignore
+
+    defer(async function num3() {
+      t.true(steps.indexOf(2) < 0); // 步骤2没开始
+      console.log('run step 2222222222222222222222222222');
+      await sleep(200);
+      steps.push(3);
+      t.true(steps.indexOf(2) < 0); // 步骤2没开始
+    });
+
+    steps.push(4);
+
+    defer(function num5() {
+      steps.push(5);
+    });
+
+    // change username here
+    name = 'world';
+
+    return 'hello ' + name;
+  });
+
+  await getUserInfo('axetroy');
+
+  t.deepEqual(steps, [1, 4, 5, 3, 2]);
 });
