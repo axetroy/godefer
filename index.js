@@ -12,26 +12,24 @@ function isFunction(value) {
 /**
  * run a queue task until it end
  * @param queue
- * @param ctx
+ * @param res
  * @param isAsync
  * @returns {Promise.<T>}
  */
-function runQueue(queue, ctx, isAsync) {
-  if (!queue.length) return isAsync ? resolve(ctx) : ctx;
+function runQueue(queue, res, isAsync) {
+  if (!queue.length) return isAsync ? resolve(res) : res;
   let cb = queue.pop();
   if (isFunction(cb)) {
-    const r = cb(ctx);
+    const r = cb(res);
     if (isPromiseLike(r)) {
-      return r.then(() => runQueue(queue, ctx, isAsync)).catch(err => {
+      return r.then(() => runQueue(queue, res, isAsync)).catch(err => {
         console.error(err);
-        return runQueue(queue, ctx, isAsync);
+        return runQueue(queue, res, isAsync);
       });
-    } else {
-      return runQueue(queue, ctx, isAsync);
     }
-  } else {
-    return runQueue(queue, ctx, isAsync);
   }
+
+  return runQueue(queue, res, isAsync);
 }
 
 /**
