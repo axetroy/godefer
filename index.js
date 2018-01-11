@@ -6,7 +6,11 @@ function isPromiseLike(obj) {
 }
 
 function isFunction(value) {
-  return typeof value === 'function';
+  return typeof value === "function";
+}
+
+function error() {
+  console.error.apply(console, Array.from(arguments));
 }
 
 /**
@@ -20,10 +24,15 @@ function runQueue(queue, res, isAsync) {
   if (!queue.length) return isAsync ? resolve(res) : res;
   let cb = queue.pop();
   if (isFunction(cb)) {
-    const r = cb(res);
+    let r;
+    try {
+      r = cb(res);
+    } catch (err) {
+      error(err);
+    }
     if (isPromiseLike(r)) {
       return r.then(() => runQueue(queue, res, isAsync)).catch(err => {
-        console.error(err);
+        error(err);
         return runQueue(queue, res, isAsync);
       });
     }
@@ -41,10 +50,18 @@ function godefer(func) {
   return function defer() {
     const t = [];
 
-    const ret = func.apply(
-      this,
-      Array.from(arguments).concat([t.push.bind(t)])
-    );
+    let ret, err;
+
+    try {
+      ret = func.apply(this, Array.from(arguments).concat([t.push.bind(t)]));
+    } catch (_err) {
+      err = _err;
+    }
+
+    if (err) {
+      runQueue(t, err, false);
+      throw err;
+    }
 
     if (isPromiseLike(ret)) {
       return ret

@@ -16,9 +16,7 @@
     "url": "https://github.com/axetroy/godefer/issues"
   },
   "homepage": "https://github.com/axetroy/godefer#readme",
-  "dependencies": {
-    "lodash.isfunction": "^3.0.8"
-  },
+  "dependencies": {},
   "devDependencies": {
     "ava": "^0.24.0",
     "coveralls": "^3.0.0",
