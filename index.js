@@ -20,25 +20,25 @@ function error() {
  * @param isAsync
  * @returns {Promise.<T>}
  */
-function runQueue(queue, res, isAsync) {
+function runQueue(queue, res, isAsync, err) {
   if (!queue.length) return isAsync ? resolve(res) : res;
   let cb = queue.pop();
   if (isFunction(cb)) {
     let r;
     try {
-      r = cb(res);
+      r = cb(null, res);
     } catch (err) {
       error(err);
     }
     if (isPromiseLike(r)) {
-      return r.then(() => runQueue(queue, res, isAsync)).catch(err => {
+      return r.then(() => runQueue(queue, res, isAsync, err)).catch(err => {
         error(err);
-        return runQueue(queue, res, isAsync);
+        return runQueue(queue, res, isAsync, err);
       });
     }
   }
 
-  return runQueue(queue, res, isAsync);
+  return runQueue(queue, res, isAsync, err);
 }
 
 /**
@@ -50,7 +50,8 @@ function godefer(func) {
   return function defer() {
     const t = [];
 
-    let ret, err;
+    let ret;
+    let err = null;
 
     try {
       ret = func.apply(this, Array.from(arguments).concat([t.push.bind(t)]));
@@ -59,16 +60,16 @@ function godefer(func) {
     }
 
     if (err) {
-      runQueue(t, err, false);
+      runQueue(t, err, false, err);
       throw err;
     }
 
     if (isPromiseLike(ret)) {
       return ret
         .then(res => runQueue(t, res, true))
-        .catch(res => runQueue(t, res, true).then(err => reject(err)));
+        .catch(err => runQueue(t, err, true, err).then(err => reject(err)));
     } else {
-      return runQueue(t, ret, false);
+      return runQueue(t, ret, false, err);
     }
   };
 }
