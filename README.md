@@ -26,7 +26,7 @@ const db = require('./db');
 const getUserInfo = godefer(async function(username, defer) {
   const client = await db.createConnection();
 
-  defer(function() {
+  defer(function(err, result) {
     client.close(); // close connection after job done
   });
 
@@ -79,7 +79,7 @@ func main() {
 - **func**: It can be a common function or async function
 - **deferFunction**: It's a function wrap with ``func``, the last argument must be **defer**
 
-### defer(cb:(result:any)=>void):void
+### defer(cb:(err: Error|null, result:any)=>void):void
 
 The defer task will run from the latest, Like Golang
 
