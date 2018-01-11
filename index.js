@@ -10,25 +10,32 @@ function defer(func) {
       [].slice.call(arguments).concat([task.push.bind(task)])
     );
 
+    let cb;
+
     if (ret && ret.then && typeof isFunction(ret.then)) {
       return ret
         .then(res => {
-          for (let i = task.length - 1; i >= 0; i--) {
-            const cb = task[i];
-            isFunction(cb) && cb(res);
+          try {
+            while ((cb = task.pop())) {
+              isFunction(cb) && cb(res);
+            }
+          } catch (err) {
+            return Promise.reject(err);
           }
           return Promise.resolve(res);
         })
-        .catch(err => {
-          for (let i = task.length - 1; i >= 0; i--) {
-            const cb = task[i];
-            isFunction(cb) && cb(err);
+        .catch(res => {
+          try {
+            while ((cb = task.pop())) {
+              isFunction(cb) && cb(res);
+            }
+          } catch (err) {
+            return Promise.reject(err);
           }
-          return Promise.reject(err);
+          return Promise.reject(res);
         });
     } else {
-      for (let i = task.length - 1; i >= 0; i--) {
-        const cb = task[i];
+      while ((cb = task.pop())) {
         isFunction(cb) && cb(ret);
       }
       return ret;

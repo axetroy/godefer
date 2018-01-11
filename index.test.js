@@ -193,3 +193,46 @@ test('If reject', async t => {
     t.deepEqual(err.message, 'test error');
   }
 });
+
+test('If throw an error in defer function', async t => {
+  const hi = df(function(name) {
+    return 'hello ' + name;
+  });
+
+  t.deepEqual(hi('world'), 'hello world');
+
+  const hiAsync = df(async function sayHi(name, defer) {
+    await sleep(100);
+
+    defer(function() {
+      throw new Error('test error');
+    });
+
+    return 'hello ' + name;
+  });
+
+  try {
+    await hiAsync('world');
+    t.fail('It should be fail');
+  } catch (err) {
+    t.deepEqual(err.message, 'test error');
+  }
+
+  const hiRejectAsync = df(async function sayHi(name, defer) {
+    await sleep(100);
+
+    defer(function() {
+      throw new Error('test error');
+    });
+
+    return Promise.reject('hello ' + name);
+  });
+
+  try {
+    await hiRejectAsync('world');
+    t.fail('It should be fail');
+  } catch (err) {
+    t.deepEqual(err.message, 'test error');
+  }
+
+});
