@@ -10,6 +10,13 @@
 [![npm version](https://badge.fury.io/js/rfcdate.svg)](https://badge.fury.io/js/rfcdate)
 ![Size](https://github-size-badge.herokuapp.com/axetroy/godefer.svg)
 
+## Apply
+
+You can use defer to do some job. e.g
+ 
+- **Destroy resource**
+- **Auto Commit or Rollback in Transaction**
+
 ## Usage
 
 ```javascript
