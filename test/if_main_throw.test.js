@@ -1,7 +1,9 @@
-import test from "ava";
-import godefer from "../index";
+import test from 'ava';
+import godefer from '../index';
 
-test("if main function throw", t => {
+const { sleep } = require('../utils');
+
+test('if main function throw', t => {
   const step = [];
   const main = godefer(function(defer) {
     step.push(1);
@@ -10,17 +12,17 @@ test("if main function throw", t => {
     });
     step.push(3);
 
-    throw new Error("main throw error");
+    throw new Error('main throw error');
   });
 
   t.throws(function() {
     return main();
-  }, "main throw error");
+  }, 'main throw error');
 
   t.deepEqual(step, [1, 3, 2]);
 });
 
-test("if async main function throw", async t => {
+test('if async main function throw', async t => {
   const step = [];
   const main = godefer(async function(defer) {
     step.push(1);
@@ -29,14 +31,37 @@ test("if async main function throw", async t => {
     });
     step.push(3);
 
-    throw new Error("async main throw error");
+    throw new Error('async main throw error');
   });
 
   try {
     await main();
-    t.fail("it should reject");
+    t.fail('it should reject');
   } catch (err) {
-    t.deepEqual(err.message, "async main throw error");
+    t.deepEqual(err.message, 'async main throw error');
+  }
+
+  t.deepEqual(step, [1, 3, 2]);
+});
+
+test('if async main function throw but async defer run success', async t => {
+  const step = [];
+  const main = godefer(async function(defer) {
+    step.push(1);
+    defer(async () => {
+      step.push(2); // even main function throw an error, it still going on
+      await sleep(1000);
+    });
+    step.push(3);
+
+    throw new Error('async main throw error and async defer ok');
+  });
+
+  try {
+    await main();
+    t.fail('it should reject');
+  } catch (err) {
+    t.deepEqual(err.message, 'async main throw error and async defer ok');
   }
 
   t.deepEqual(step, [1, 3, 2]);
