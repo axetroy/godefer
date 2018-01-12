@@ -16,10 +16,41 @@ test('Basic use', async t => {
   t.deepEqual(step, [1, 3, 2]);
 });
 
-test('Not a async function and it should throw an error', async t => {
-  t.throws(function() {
-    godefer(function() {});
+test('If constructor throw an error', async t => {
+  const func = godefer(function() {
+    throw new Error(`Test error`);
   });
+
+  try {
+    await func();
+    t.fail('It should fail');
+  } catch (err) {
+    t.deepEqual(err.message, 'Test error');
+  }
+});
+
+test('If constructor and defer throw an error', async t => {
+  const func = godefer(function(defer) {
+
+    defer(function() {
+      throw new Error('defer error');
+    });
+
+    throw new Error(`constructor error`);
+  });
+
+  try {
+    await func();
+    t.fail('It should fail');
+  } catch (err) {
+    t.deepEqual(err.message, 'constructor error');
+  }
+});
+
+test('What ever constructor is, it always return a promise', async t => {
+  const ret = godefer(function() {})();
+
+  t.true(typeof ret.then === 'function');
 });
 
 test('Make sure argument pass', async t => {

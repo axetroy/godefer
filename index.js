@@ -9,10 +9,6 @@ function isFunction(value) {
   return typeof value === 'function';
 }
 
-function isAsyncFunction(value) {
-  return Object.prototype.toString.call(value) === '[object AsyncFunction]';
-}
-
 /**
  * run a queue task until it end
  * @param queue
@@ -47,13 +43,18 @@ function DigestQueue(queue, res, mainFuncErr) {
  * @returns {defer}
  */
 function godefer(func) {
-  if (!isAsyncFunction(func)) {
-    throw new Error('godefer argument only accept async function.');
-  }
   return function defer() {
     const t = [];
-    return func
-      .apply(this, Array.from(arguments).concat([t.push.bind(t)]))
+    let r;
+    try {
+      r = func.apply(this, Array.from(arguments).concat([t.push.bind(t)]));
+      if (!isPromiseLike(r)) {
+        r = resolve(r);
+      }
+    } catch (err) {
+      r = reject(err);
+    }
+    return r
       .then(res => DigestQueue(t, res, null))
       .catch(err => DigestQueue(t, null, err));
   };
