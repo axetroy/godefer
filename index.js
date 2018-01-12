@@ -9,36 +9,36 @@ function isFunction(value) {
   return typeof value === 'function';
 }
 
+function isAsyncFunction(value) {
+  return Object.prototype.toString.call(value) === '[object AsyncFunction]';
+}
+
 /**
  * run a queue task until it end
  * @param queue
  * @param res
- * @param isAsync
  * @param mainFuncErr
  * @returns {Promise.<T>}
  */
-function DigestQueue(queue, res, isAsync, mainFuncErr) {
+function DigestQueue(queue, res, mainFuncErr) {
   if (!queue.length) {
-    return isAsync
-      ? mainFuncErr ? reject(mainFuncErr) : resolve(res)
-      : mainFuncErr ? mainFuncErr : res;
+    return mainFuncErr ? reject(mainFuncErr) : resolve(res);
   }
-  let cb = queue.pop();
+  const cb = queue.pop();
   if (isFunction(cb)) {
     let r;
     try {
-      r = cb(null, res);
+      r = cb(mainFuncErr, res);
     } catch (_err) {
-      console.error(_err);
+      return DigestQueue(queue, res, mainFuncErr || _err);
     }
     if (isPromiseLike(r)) {
       return r
-        .then(() => DigestQueue(queue, res, isAsync, mainFuncErr))
-        .catch(() => DigestQueue(queue, res, isAsync, mainFuncErr));
+        .then(() => DigestQueue(queue, res, mainFuncErr))
+        .catch(err => DigestQueue(queue, res, mainFuncErr || err));
     }
   }
-
-  return DigestQueue(queue, res, isAsync, mainFuncErr);
+  return DigestQueue(queue, res, mainFuncErr);
 }
 
 /**
@@ -47,30 +47,15 @@ function DigestQueue(queue, res, isAsync, mainFuncErr) {
  * @returns {defer}
  */
 function godefer(func) {
+  if (!isAsyncFunction(func)) {
+    throw new Error('godefer argument only accept async function.');
+  }
   return function defer() {
     const t = [];
-
-    let ret;
-    let err = null;
-
-    try {
-      ret = func.apply(this, Array.from(arguments).concat([t.push.bind(t)]));
-    } catch (_err) {
-      err = _err;
-    }
-
-    if (err) {
-      DigestQueue(t, null, false, err);
-      throw err;
-    }
-
-    if (isPromiseLike(ret)) {
-      return ret
-        .then(res => DigestQueue(t, res, true, null))
-        .catch(err => DigestQueue(t, null, true, err));
-    } else {
-      return DigestQueue(t, ret, false, null);
-    }
+    return func
+      .apply(this, Array.from(arguments).concat([t.push.bind(t)]))
+      .then(res => DigestQueue(t, res, null))
+      .catch(err => DigestQueue(t, null, err));
   };
 }
 

@@ -1,9 +1,9 @@
-import test from "ava";
-import godefer from "../index";
+import test from 'ava';
+import godefer from '../index';
 
-test("Basic use", t => {
+test('Basic use', async t => {
   const step = [];
-  const main = godefer(function(defer) {
+  const main = godefer(async defer => {
     step.push(1);
     defer(function() {
       step.push(2);
@@ -11,16 +11,22 @@ test("Basic use", t => {
     step.push(3);
   });
 
-  main();
+  await main();
 
   t.deepEqual(step, [1, 3, 2]);
 });
 
-test("Make sure argument pass", t => {
+test('Not a async function and it should throw an error', async t => {
+  t.throws(function() {
+    godefer(function() {});
+  });
+});
+
+test('Make sure argument pass', async t => {
   const step = [];
-  const main = godefer(function(argv1, argv2, defer) {
-    t.deepEqual(argv1, "a");
-    t.deepEqual(argv2, "b");
+  const main = godefer(async (argv1, argv2, defer) => {
+    t.deepEqual(argv1, 'a');
+    t.deepEqual(argv2, 'b');
     step.push(1);
     defer(function() {
       step.push(2);
@@ -28,26 +34,26 @@ test("Make sure argument pass", t => {
     step.push(3);
   });
 
-  main("a", "b");
+  await main('a', 'b');
 
   t.deepEqual(step, [1, 3, 2]);
 });
 
-test("err fist in defer argument", t => {
+test('err fist in defer argument', async t => {
   const step = [];
-  const main = godefer(function(defer) {
+  const main = godefer(async defer => {
     step.push(1);
     defer(function(err, res) {
       t.deepEqual(err, null);
-      t.deepEqual(res, "hello");
+      t.deepEqual(res, 'hello');
       step.push(2);
     });
     step.push(3);
 
-    return "hello";
+    return 'hello';
   });
 
-  main();
+  await main();
 
   t.deepEqual(step, [1, 3, 2]);
 });
