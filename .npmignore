@@ -12,3 +12,5 @@ node_modules
 *.test.js
 contributing.md
 .travis.yml
+test
+*.lock
