@@ -1,6 +1,5 @@
 ## Golang Defer implement in Javascript
 
-[![Greenkeeper badge](https://badges.greenkeeper.io/axetroy/godefer.svg)](https://greenkeeper.io/)
 [![Build Status](https://travis-ci.org/axetroy/godefer.svg?branch=master)](https://travis-ci.org/axetroy/godefer)
 [![Coverage Status](https://coveralls.io/repos/github/axetroy/godefer/badge.svg?branch=master)](https://coveralls.io/github/axetroy/godefer?branch=master)
 [![Dependency](https://david-dm.org/axetroy/rfcdate.svg)](https://david-dm.org/axetroy/rfcdate)
